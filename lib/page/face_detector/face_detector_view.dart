@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:developer';
 
 import 'package:camera/camera.dart';
@@ -29,6 +31,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
   CustomPaint? _customPaint;
   String? _text;
   bool _isContainFace = false;
+  late CameraView cameraView;
+  late CameraController? cameraController;
 
   @override
   void dispose() {
@@ -38,8 +42,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final cameraView = CameraView(
+  void initState() {
+    cameraView = CameraView(
       title: 'Face Detector',
       customPaint: _customPaint,
       controller: CameraController(cameras.first, ResolutionPreset.medium),
@@ -49,7 +53,18 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
       },
       initialDirection: CameraLensDirection.front,
     );
-    final cameraController = cameraView.controller;
+     cameraController = cameraView.controller;
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    cameraController?.initialize().then((value) => {setState(() {})});
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: cameraView,
       floatingActionButton: Visibility(
@@ -68,7 +83,12 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
               return;
             }
 
-Navigator.push(context, MaterialPageRoute(builder: (context) => CapturedView(imagePath: file!.path),));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CapturedView(imagePath: file!.path),
+              ),
+            );
           },
           child: const Icon(Icons.add),
         ),
